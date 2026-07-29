@@ -1,0 +1,21 @@
+# Node & Build artifacts
+node_modules/
+dist/
+build/
+.vite/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Backend Uploads temporary storage (preserve directory)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

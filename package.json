@@ -1,0 +1,23 @@
+{
+  "name": "sap-notes-daily-portal",
+  "version": "1.0.0",
+  "description": "Enterprise-grade SAP Daily Notes Portal with SAP Fiori UI, AI Writing Assistant & Role-Based Auth",
+  "main": "backend/server.js",
+  "scripts": {
+    "postinstall": "npm run install-deps",
+    "install-deps": "npm --prefix backend install && npm --prefix frontend install",
+    "build": "npm --prefix frontend run build",
+    "start": "node backend/server.js"
+  },
+  "keywords": [
+    "sap",
+    "abap",
+    "fiori",
+    "notes",
+    "portal",
+    "ai-assistant",
+    "learning-management"
+  ],
+  "author": "SAP Enterprise Developer",
+  "license": "MIT"
+}
