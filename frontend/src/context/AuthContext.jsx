@@ -10,34 +10,23 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (!token) {
-        // Pre-set default guest/user state for immediate exploration if not logged in
-        setUser({
-          id: 'demo-user-id',
-          name: 'SAP Learner User',
-          email: 'user@sap.com',
-          role: 'user',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
-        });
+      const storedToken = localStorage.getItem('sap_token') || sessionStorage.getItem('sap_token');
+      if (!storedToken) {
+        setUser(null);
+        setToken(null);
         setLoading(false);
         return;
       }
       try {
         const res = await api.get('/auth/me');
         setUser(res.data.user);
+        setToken(storedToken);
       } catch (err) {
         console.warn('Token expired or invalid', err);
         localStorage.removeItem('sap_token');
         sessionStorage.removeItem('sap_token');
         setToken(null);
-        // Default to learner view
-        setUser({
-          id: 'demo-user-id',
-          name: 'SAP Learner User',
-          email: 'user@sap.com',
-          role: 'user',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
-        });
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -73,29 +62,24 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('sap_token');
     sessionStorage.removeItem('sap_token');
     setToken(null);
-    setUser({
-      id: 'demo-user-id',
-      name: 'SAP Learner User',
-      email: 'user@sap.com',
-      role: 'user',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
-    });
+    setUser(null);
   };
 
-  // Quick Role Toggle for testing Admin vs User UI
+  // Quick Role Switcher for testing Admin vs Learner User in active session
   const quickSwitchRole = async (targetRole) => {
     const email = targetRole === 'admin' ? 'admin@sap.com' : 'user@sap.com';
     const password = targetRole === 'admin' ? 'Admin@123' : 'User@123';
     try {
-      await login(email, password, false);
+      await login(email, password, true);
     } catch (e) {
-      // Fallback local switch
-      setUser(prev => ({
-        ...prev,
-        role: targetRole,
-        name: targetRole === 'admin' ? 'SAP System Admin' : 'SAP Learner User',
-        email
-      }));
+      if (user) {
+        setUser(prev => ({
+          ...prev,
+          role: targetRole,
+          name: targetRole === 'admin' ? 'SAP System Admin' : 'SAP Learner User',
+          email
+        }));
+      }
     }
   };
 

@@ -13,9 +13,10 @@ import NoteEditorModal from './components/notes/NoteEditorModal';
 import NoteDetailModal from './components/notes/NoteDetailModal';
 import VersionHistoryModal from './components/notes/VersionHistoryModal';
 import FilePreviewModal from './components/files/FilePreviewModal';
+import { Layers } from 'lucide-react';
 
 export default function App() {
-  const { user, token, logout } = useAuth();
+  const { user, token, loading, logout } = useAuth();
   const isAdmin = user?.role === 'admin';
 
   // Data States
@@ -87,16 +88,16 @@ export default function App() {
   }, [selectedFolder, selectedModule, searchQuery, showFavoritesOnly]);
 
   useEffect(() => {
-    if (token) {
+    if (token && user) {
       fetchFolders();
     }
-  }, [token, fetchFolders]);
+  }, [token, user, fetchFolders]);
 
   useEffect(() => {
-    if (token) {
+    if (token && user) {
       fetchNotes();
     }
-  }, [token, fetchNotes]);
+  }, [token, user, fetchNotes]);
 
   // Folder Handlers
   const handleSaveFolder = async (folderData) => {
@@ -181,8 +182,21 @@ export default function App() {
     fetchNotes();
   };
 
-  // If user is NOT authenticated with a valid JWT token, render full-screen SAP Fiori LoginPage entry point
-  if (!token) {
+  // 1. Initial Authentication Check Loading Spinner
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6 space-y-4">
+        <div className="p-4 bg-fiori-primary rounded-2xl shadow-xl animate-bounce">
+          <Layers className="w-8 h-8 text-white" />
+        </div>
+        <p className="font-bold text-lg tracking-wide">SAP Daily Notes Management System</p>
+        <p className="text-xs text-sky-300 font-mono">Initializing Fiori 3.0 Portal...</p>
+      </div>
+    );
+  }
+
+  // 2. Strict Route Protection: Render LoginPage as default landing page when unauthenticated
+  if (!token || !user) {
     return (
       <>
         <LoginPage
@@ -198,6 +212,7 @@ export default function App() {
     );
   }
 
+  // 3. Authenticated View: Automatically routed to Admin or Learner User Dashboard based on user role
   return (
     <div className="min-h-screen flex flex-col bg-fiori-bgLight dark:bg-fiori-bgDark">
       
