@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
@@ -41,9 +42,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Production Static Serving for Render single-repo deployment
-if (process.env.NODE_ENV === 'production' || process.env.RENDER) {
-  const frontendDistPath = path.join(__dirname, '../frontend/dist');
+// Production & Render Static Serving
+const frontendDistPath = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(path.join(frontendDistPath, 'index.html'))) {
+  console.log('✅ Serving built React Frontend from:', frontendDistPath);
   app.use(express.static(frontendDistPath));
   
   app.get('*', (req, res) => {
