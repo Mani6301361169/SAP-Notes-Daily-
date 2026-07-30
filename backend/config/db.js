@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const User = require('../models/User');
 const Folder = require('../models/Folder');
@@ -25,7 +26,7 @@ const connectDB = async () => {
 
     console.log(`✅ MongoDB Connected Successfully: ${mongoose.connection.host}`);
 
-    // Auto-seed initial demo dataset if collections are empty
+    // Auto-seed initial demo dataset if collections are empty or sync default users
     await seedInitialData();
 
   } catch (error) {
@@ -47,13 +48,51 @@ const connectDB = async () => {
 
 async function seedInitialData() {
   try {
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      console.log('🌱 Seeding initial SAP Daily Notes Portal dataset...');
+    const hashedPassword = await bcrypt.hash('123', 10);
+
+    // Upsert primary user accounts with email mani@gmail.com & password 123
+    await User.findOneAndUpdate(
+      { email: 'mani@gmail.com' },
+      {
+        name: 'Mani (SAP Admin)',
+        email: 'mani@gmail.com',
+        password: hashedPassword,
+        role: 'admin',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+      },
+      { upsert: true, new: true }
+    );
+
+    await User.findOneAndUpdate(
+      { email: 'admin@sap.com' },
+      {
+        name: 'SAP System Admin',
+        email: 'admin@sap.com',
+        password: hashedPassword,
+        role: 'admin',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+      },
+      { upsert: true, new: true }
+    );
+
+    await User.findOneAndUpdate(
+      { email: 'user@sap.com' },
+      {
+        name: 'SAP Learner User',
+        email: 'user@sap.com',
+        password: hashedPassword,
+        role: 'user',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+      },
+      { upsert: true, new: true }
+    );
+
+    const folderCount = await Folder.countDocuments();
+    if (folderCount === 0) {
+      console.log('🌱 Seeding initial SAP Daily Notes Portal folders and notes...');
       const { users, folders } = await getSeedData();
 
-      const createdUsers = await User.insertMany(users);
-      const adminUser = createdUsers.find(u => u.role === 'admin');
+      const adminUser = await User.findOne({ email: 'mani@gmail.com' });
 
       const folderDocs = folders.map(f => ({ ...f, createdBy: adminUser._id }));
       const createdFolders = await Folder.insertMany(folderDocs);
@@ -93,14 +132,15 @@ async function seedInitialData() {
       await ActivityLog.create({
         action: 'System Initialization',
         entityType: 'User',
-        entityTitle: 'SAP Portal Pre-Seeded',
-        user: 'System Admin',
-        details: 'Initial SAP Daily Notes, Day Folders, and User Accounts seeded.'
+        entityTitle: 'SAP Portal Credentials Updated',
+        user: 'Mani (SAP Admin)',
+        details: 'Updated default credentials to email: mani@gmail.com | password: 123'
       });
-
-      console.log('🎉 Default SAP Folders, Notes, Admin & Learner Accounts pre-seeded successfully!');
-      console.log('🔑 Credentials: Admin (admin@sap.com / Admin@123) | User (user@sap.com / User@123)');
     }
+
+    console.log('🎉 Default SAP Folders, Notes, Admin & Learner Accounts synced successfully!');
+    console.log('🔑 Primary Credentials: Mail: mani@gmail.com | Password: 123 (Supports Admin & User roles)');
+
   } catch (err) {
     console.error('⚠️ Seeding error:', err.message);
   }

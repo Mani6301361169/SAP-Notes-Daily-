@@ -1,21 +1,27 @@
 const bcrypt = require('bcryptjs');
 
 async function getSeedData() {
-  const hashedPasswordAdmin = await bcrypt.hash('Admin@123', 10);
-  const hashedPasswordUser = await bcrypt.hash('User@123', 10);
+  const hashedPassword = await bcrypt.hash('123', 10);
 
   const users = [
     {
-      name: 'SAP System Admin',
-      email: 'admin@sap.com',
-      password: hashedPasswordAdmin,
+      name: 'Mani (SAP Admin)',
+      email: 'mani@gmail.com',
+      password: hashedPassword,
       role: 'admin',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
     },
     {
-      name: 'SAP Learner User',
+      name: 'SAP System Admin',
+      email: 'admin@sap.com',
+      password: hashedPassword,
+      role: 'admin',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+    },
+    {
+      name: 'Mani (Learner User)',
       email: 'user@sap.com',
-      password: hashedPasswordUser,
+      password: hashedPassword,
       role: 'user',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
     }
@@ -65,7 +71,7 @@ const getSeedNotes = (folderMap) => [
     folderTitle: '📁 Day 1 – SAP Introduction',
     tags: ['Architecture', 'S4HANA', 'Overview', 'Fiori'],
     sapModule: 'GENERAL',
-    author: 'SAP Enterprise Architect',
+    author: 'Mani (SAP Admin)',
     isPinned: true,
     isFavorite: true
   },
