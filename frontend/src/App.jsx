@@ -10,7 +10,7 @@ import AdminDashboard from './components/dashboard/AdminDashboard';
 import UserDashboard from './components/dashboard/UserDashboard';
 import FolderModal from './components/folders/FolderModal';
 import NoteEditorModal from './components/notes/NoteEditorModal';
-import NoteDetailModal from './components/notes/NoteDetailModal';
+import NoteReaderPage from './components/notes/NoteReaderPage';
 import VersionHistoryModal from './components/notes/VersionHistoryModal';
 import FilePreviewModal from './components/files/FilePreviewModal';
 import { Layers } from 'lucide-react';
@@ -33,15 +33,15 @@ export default function App() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
+  // Active Document Reader Note State
+  const [selectedNoteForReader, setSelectedNoteForReader] = useState(null);
+
   // Modals
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [folderToEdit, setFolderToEdit] = useState(null);
 
   const [isNoteEditorOpen, setIsNoteEditorOpen] = useState(false);
   const [noteToEdit, setNoteToEdit] = useState(null);
-
-  const [selectedNoteForDetail, setSelectedNoteForDetail] = useState(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const [versionNote, setVersionNote] = useState(null);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
@@ -212,7 +212,31 @@ export default function App() {
     );
   }
 
-  // 3. Authenticated View: Automatically routed to Admin or Learner User Dashboard based on user role
+  // 3. Document Reader View (Full Notion/Medium-Style Reader)
+  if (selectedNoteForReader) {
+    return (
+      <>
+        <NoteReaderPage
+          note={selectedNoteForReader}
+          onBack={() => setSelectedNoteForReader(null)}
+          onToggleFavorite={handleToggleFavoriteNote}
+          showToast={showToast}
+        />
+        <FilePreviewModal
+          file={previewFile}
+          isOpen={isFilePreviewOpen}
+          onClose={() => setIsFilePreviewOpen(false)}
+        />
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ message: '', type: 'success' })}
+        />
+      </>
+    );
+  }
+
+  // 4. Authenticated View: Automatically routed to Admin or Learner User Dashboard based on user role
   return (
     <div className="min-h-screen flex flex-col bg-fiori-bgLight dark:bg-fiori-bgDark">
       
@@ -268,7 +292,7 @@ export default function App() {
               onTogglePinNote={handleTogglePinNote}
               onToggleFavoriteNote={handleToggleFavoriteNote}
               onOpenVersions={n => { setVersionNote(n); setIsVersionModalOpen(true); }}
-              onSelectNote={n => { setSelectedNoteForDetail(n); setIsDetailModalOpen(true); }}
+              onSelectNote={n => setSelectedNoteForReader(n)}
               showToast={showToast}
               fetchData={() => { fetchFolders(); fetchNotes(); }}
             />
@@ -279,7 +303,7 @@ export default function App() {
               loading={loadingFolders || loadingNotes}
               selectedFolder={selectedFolder}
               onSelectFolder={f => setSelectedFolder(f)}
-              onSelectNote={n => { setSelectedNoteForDetail(n); setIsDetailModalOpen(true); }}
+              onSelectNote={n => setSelectedNoteForReader(n)}
               onToggleFavoriteNote={handleToggleFavoriteNote}
             />
           )}
@@ -302,15 +326,6 @@ export default function App() {
         onSave={handleSaveNote}
         noteToEdit={noteToEdit}
         folders={folders}
-        showToast={showToast}
-      />
-
-      <NoteDetailModal
-        note={selectedNoteForDetail}
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        onToggleFavorite={handleToggleFavoriteNote}
-        onPreviewFile={f => { setPreviewFile(f); setIsFilePreviewOpen(true); }}
         showToast={showToast}
       />
 
