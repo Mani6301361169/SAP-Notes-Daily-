@@ -4,8 +4,8 @@
   "description": "Enterprise-grade SAP Daily Notes Portal with SAP Fiori UI, AI Writing Assistant & Role-Based Auth",
   "main": "backend/server.js",
   "scripts": {
-    "postinstall": "cd backend && npm install && cd ../frontend && npm install",
-    "build": "cd backend && npm install && cd ../frontend && npm install && npm run build",
+    "postinstall": "cd backend && npm install && cd ../frontend && npm install --include=dev",
+    "build": "cd backend && npm install && cd ../frontend && npm install --include=dev && npm run build",
     "start": "node backend/server.js"
   },
   "keywords": [
