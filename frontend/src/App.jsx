@@ -5,7 +5,7 @@ import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
 import Breadcrumb from './components/common/Breadcrumb';
 import Toast from './components/common/Toast';
-import AuthModal from './components/common/AuthModal';
+import LoginPage from './components/auth/LoginPage';
 import AdminDashboard from './components/dashboard/AdminDashboard';
 import UserDashboard from './components/dashboard/UserDashboard';
 import FolderModal from './components/folders/FolderModal';
@@ -15,7 +15,7 @@ import VersionHistoryModal from './components/notes/VersionHistoryModal';
 import FilePreviewModal from './components/files/FilePreviewModal';
 
 export default function App() {
-  const { user } = useAuth();
+  const { user, token, logout } = useAuth();
   const isAdmin = user?.role === 'admin';
 
   // Data States
@@ -25,15 +25,14 @@ export default function App() {
   const [loadingNotes, setLoadingNotes] = useState(true);
 
   // Active View & Filter States
-  const [activeView, setActiveView] = useState('folders'); // 'folders' | 'dashboard'
+  const [activeView, setActiveView] = useState('folders');
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [selectedModule, setSelectedModule] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
-  // Modals & Triggers
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  // Modals
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [folderToEdit, setFolderToEdit] = useState(null);
 
@@ -88,12 +87,16 @@ export default function App() {
   }, [selectedFolder, selectedModule, searchQuery, showFavoritesOnly]);
 
   useEffect(() => {
-    fetchFolders();
-  }, [fetchFolders]);
+    if (token) {
+      fetchFolders();
+    }
+  }, [token, fetchFolders]);
 
   useEffect(() => {
-    fetchNotes();
-  }, [fetchNotes]);
+    if (token) {
+      fetchNotes();
+    }
+  }, [token, fetchNotes]);
 
   // Folder Handlers
   const handleSaveFolder = async (folderData) => {
@@ -178,6 +181,23 @@ export default function App() {
     fetchNotes();
   };
 
+  // If user is NOT authenticated with a valid JWT token, render full-screen SAP Fiori LoginPage entry point
+  if (!token) {
+    return (
+      <>
+        <LoginPage
+          onLoginSuccess={() => showToast('Authenticated successfully.', 'success')}
+          showToast={showToast}
+        />
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ message: '', type: 'success' })}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-fiori-bgLight dark:bg-fiori-bgDark">
       
@@ -186,10 +206,10 @@ export default function App() {
         onSearch={q => setSearchQuery(q)}
         activeView={activeView}
         setActiveView={setActiveView}
-        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenAuth={() => logout()}
       />
 
-      {/* Main Body Workspace */}
+      {/* Main Workspace Body */}
       <div className="flex-1 flex max-w-7xl w-full mx-auto">
         
         {/* Sticky Sidebar Navigation */}
@@ -206,7 +226,7 @@ export default function App() {
           setShowArchived={setShowArchived}
         />
 
-        {/* Content Canvas */}
+        {/* Main Content Canvas */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           
           <Breadcrumb
@@ -254,12 +274,6 @@ export default function App() {
       </div>
 
       {/* Global Modals */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        showToast={showToast}
-      />
-
       <FolderModal
         isOpen={isFolderModalOpen}
         onClose={() => setIsFolderModalOpen(false)}
